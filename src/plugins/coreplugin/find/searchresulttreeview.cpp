@@ -44,11 +44,12 @@ SearchResultTreeView::SearchResultTreeView(QWidget *parent)
     setIndentation(14);
     setUniformRowHeights(true);
     setExpandsOnDoubleClick(true);
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
     header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     header()->setStretchLastSection(false);
     header()->hide();
 
-    connect(this, &SearchResultTreeView::activated,
+    connect(this, &SearchResultTreeView::doubleClicked,
             this, &SearchResultTreeView::emitJumpToSearchResult);
 }
 
@@ -90,6 +91,13 @@ void SearchResultTreeView::keyPressEvent(QKeyEvent *event)
         const SearchResultItem item
             = model()->data(currentIndex(), ItemDataRoles::ResultItemRole).value<SearchResultItem>();
         emit jumpToSearchResult(item);
+        return;
+    } else if (event->key() == Qt::Key_Delete
+               && event->modifiers() == 0) {
+        foreach (auto selectedItem, selectionModel()->selectedIndexes()) {
+            setRowHidden(selectedItem.row(), selectedItem.parent(), true);
+        }
+
         return;
     }
     TreeView::keyPressEvent(event);
